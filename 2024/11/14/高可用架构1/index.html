@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="utf-8">
+  
+  <title>
+    
+    高可用架构（1）：负载均衡
+    
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/prism.min.js"></script>
+
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
+
+  
+<link rel="stylesheet" href="/css/prism/material-light.css">
+
+  
+<link rel="stylesheet" href="/css/prism/material-dark.css">
+
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+  
+<link rel="stylesheet" href="https://cdn.staticfile.org/prism/1.17.1/plugins/line-numbers/prism-line-numbers.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Noto+Sans+SC:wght@300&display=swap.css">
+
+  
+<link rel="stylesheet" href="/iconfont/iconfont.css">
+
+<meta name="generator" content="Hexo 7.0.0"></head>
+<script>
+  function setIsNight(isNight) {
+    localStorage.setItem('isNight', isNight)
+  }
+
+  function getIsNight() {
+    return localStorage.getItem('isNight')
+  }
+
+  function switchTheme() {
+    let isNight = getIsNight()
+    if (isNight === 'false') {
+      document.documentElement.className = 'dark'
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😴'
+      setIsNight('true')
+    } else {
+      document.documentElement.className = 'light'
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😳'
+      setIsNight('false')
+    }
+  }
+
+  let isNight = getIsNight()
+  if (isNight == null) {
+    isNight = 'false'
+    setIsNight('false')
+  }
+  if (isNight === 'false') {
+    document.documentElement.className = 'light'
+  } else {
+    document.documentElement.className = 'dark'
+  }
+</script>
+
+<body>
+  <div class="show-area">
+    <header>
+  <ul class="nav">
+    <li class="nav-child">
+      <a href="/">首页</a>
+    </li>
+    <li class="nav-child">
+      <a href="/categories">分类</a>
+    </li>
+    <li class="nav-child">
+      <a href="/tags">标签</a>
+    </li>
+    <li class="nav-child">
+      <a href="/about">关于</a>
+    </li>
+<!--     <li class="nav-child"> -->
+<!--       <a href="/collection">收藏</a> -->
+<!--     </li> -->
+<!--     <li class="nav-child"> -->
+<!--       <a href="/board">留言</a> -->
+<!--     </li> -->
+  </ul>
+  <div class="theme-switcher" onclick="switchTheme()">😳</div>
+  <script>
+    if (isNight === 'false') {
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😳'
+    } else {
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😴'
+    }
+  </script>
+</header>
+    <main class="main-body">
+  <div class="toc-container">
+    <div class="toc-toggle">
+      <i id="toc-b-icon" class="iconfont icon-liebiao-01" onclick="toggleShow()"></i>
+    </div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%83%E4%B8%87%E6%B5%81%E9%87%8F%E5%86%85%E7%9A%84%E9%9B%86%E4%B8%AD%E5%BC%8F%E6%9E%B6%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">千万流量内的集中式架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E7%BA%A7%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">2.1.</span> <span class="toc-text">多级负载均衡</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BD%AF%E7%A1%AC%E4%BB%B6%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">2.1.1.</span> <span class="toc-text">软硬件负载均衡</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E5%B1%82%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">2.1.2.</span> <span class="toc-text">多层负载均衡</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E7%BA%A7%E6%8C%82%E8%BD%BD"><span class="toc-number">2.1.3.</span> <span class="toc-text">多级挂载</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%91%E5%B9%B3%E5%8F%B0%E5%92%8C%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E2%80%94%E2%80%94Ingress%E5%92%8CNodePort"><span class="toc-number">2.1.4.</span> <span class="toc-text">云平台和负载均衡——Ingress和NodePort</span></a></li></ol></li></ol></li></ol>
+  </div>
+  
+  <script>
+    var show = false
+    function toggleShow() {
+      if (show) {
+        document.getElementsByClassName('toc')[0].className = 'toc'
+        document.getElementById('toc-b-icon').className = 'iconfont icon-liebiao-01'
+      } else {
+        document.getElementsByClassName('toc')[0].className = 'toc show'
+        document.getElementById('toc-b-icon').className = 'iconfont icon-quxiao-01'
+      }
+      show = !show
+    }
+    document.getElementsByClassName('toc')[0].onclick = toggleShow
+  </script>
+  
+  <div class="article-header">
+    <h1 class="article-title">高可用架构（1）：负载均衡</h1>
+    <div class="article-details">
+      <div class="article-post-date"><span>Posted at </span> 2024-11-14</div>
+      <div class="article-tags">
+        
+        <a href="/tags/负载均衡">#负载均衡</a>
+        
+        <a href="/tags/k8s">#k8s</a>
+        
+      </div>
+    </div>
+  </div>
+  <div class="article">
+  
+  <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&nbsp;&nbsp;&nbsp;&nbsp;2024年对我来说，在技术视野上新的变化是从个人视角的开发转向到企业中有关高并发、高流量的架构设计。在美团工作的半年里，虽然大部分时间确实是在做最低级的功能测试，但在各模块联测、验证以及用例设计、缺陷定位的过程中，对体系结构或多或少能够窥见一二。下半年在中国结算做最低级的开发，尽管负责的模块在开发上并没有什么技术含量，但是由于公司里的技术人员本不算多，可以说每个模块的开发人员都要深入架构，负责每一层的配置。</p>
+<p>![[Pasted image 20241214100952.png]]</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;如果说之前的工作更多是在研究如何实现功能，那么今年更多是从全局和宏观角度下，了解我需要使用的工具以及当前企业中的最佳实践。然而架构中的每一个节点背后都是极其复杂的原理，可以学习和展开的内容非常多，因此本系列会持续更新，如果内容有浅显和疏漏的部分，还请读者海涵。</p>
+<h2 id="千万流量内的集中式架构"><a href="#千万流量内的集中式架构" class="headerlink" title="千万流量内的集中式架构"></a>千万流量内的集中式架构</h2><p>![[Pasted image 20241214102132.png]]</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;用户访问量低时，部署结构比较简单。用户流量集中发往中央处理器，由中央服务器进行反向代理：中央服务器将任务下达节点服务器，节点服务器执行任务并返回结果。<br>在中央处理器进行任务调度时，可以通过ip地址，将节点服务器部署在不同地区，以获取更快的响应速度。然而这种解决方案的节点服务器负载由用户决定，流量更大的省份，服务器常常面临更大的压力。此时可以引入负载均衡，设置算法由中央服务器主动分配流量。</p>
+<h3 id="多级负载均衡"><a href="#多级负载均衡" class="headerlink" title="多级负载均衡"></a>多级负载均衡</h3><h4 id="软硬件负载均衡"><a href="#软硬件负载均衡" class="headerlink" title="软硬件负载均衡"></a>软硬件负载均衡</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;软件负载均衡解决方案是指在一台或多台服务器相应的操作系统上安装一个或多个附加软件来实现负载均衡。硬件负载均衡解决方案是直接在服务器和外部网络间安装负载均衡设备，这种设备通常是一个独立于系统的硬件，我们称之为负载均衡器（F5负载均衡不低于20万&#x2F;台）。</p>
+<h4 id="多层负载均衡"><a href="#多层负载均衡" class="headerlink" title="多层负载均衡"></a>多层负载均衡</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;多层负载均衡中的“层”指的是OSI七层网络模型中的“层”。</p>
+<ol>
+<li>二层负载均衡（VIP+MAC地址）：数据链路层，外部请求流量经过虚拟IP地址，负载均衡收到流量请求后分配后端实际的MAC地址进行响应。<br>这种方式负载方式虽然控制粒度比较粗，但是优点是负载均衡服务器的压力会比较小，负载均衡服务器只负责请求的进入，不负责请求的响应（响应是有后端业务服务器直接响应给客户端），吞吐量会比较高。</li>
+<li>四层负载均衡（TCP&#x2F;UDP）：传输层，使用IP+PORT接收外部流量请求，转发到对应的机器上。</li>
+<li>七层负载均衡（HTTP）：应用层，使用虚拟的URL或IP地址接收外部流量请求，转发到对应的处理服务器。</li>
+</ol>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;由于四层负载均衡是基于网络层和传输层工作的，因此并不能理解应用协议（如HTTP&#x2F;FTP&#x2F;MySQL等），只能通过IP和端口号设计负载均衡算法。而七层负载均衡还可以通过URL、浏览器类别、语言、Cookie信息等来设计算法。<br>&nbsp;&nbsp;&nbsp;&nbsp;常见的四层均衡服务器有商业硬件负载均衡器F5、基于Linux Kernel实现的LVS。常见的七层负载均衡是Nginx。</p>
+<h4 id="多级挂载"><a href="#多级挂载" class="headerlink" title="多级挂载"></a>多级挂载</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;中央处理器会承受所有流量，因此负载均衡常常成为系统的瓶颈。由于四层负载均衡是基于网络层和传输层工作的，性能远高于工作在应用层工作的七层负载均衡，一种常见的部署方式是把不同类型的负载均衡器及联部署，将七层负载均衡器作为四层负载均衡器的下游服务器。</p>
+<p>![[Pasted image 20241214121807.png]]</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;四层负载均衡器可以提供多业务、多个IP地址的接入能力，比如将公司内部不同的业务转发给不同的Nginx服务。七层负载均衡器可以把来自LVS同一个虚拟IP的流量按照应用协议（域名&#x2F;URL&#x2F;MySQL等）做进一步精细化控制，转发到不同后端服务器集群上。<br>如果有需要，还可以在四层负载均衡器上有挂载二层负载均衡器，按照MAC地址分发流量，最终由四层负载均衡器响应客户端，降低四层负载均衡的压力。<br>负载均衡集群也拥有类似心跳检测的机制，成为“健康检查”。</p>
+<ol>
+<li>当后端服务器实例被判定为异常后，负载均衡实例自动将新的请求转发给其他正常的后端服务器，而不会转发到异常的后端服务器。</li>
+<li>当异常实例恢复正常后，负载均衡将其恢复至负载均衡服务中，重新转发请求给此实例。</li>
+<li>若健康检查探测到所有后端服务都有异常时，请求将会被转发给所有后端服务器。</li>
+</ol>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;七层负载均衡器可以利用四层负载均衡器的健康检查服务实现平滑的扩容和下线，四层负载均衡也可以利用哈希等算法实现集群化的服务，从而保证多级负载均衡系统的高可用和高扩展。</p>
+<h4 id="云平台和负载均衡——Ingress和NodePort"><a href="#云平台和负载均衡——Ingress和NodePort" class="headerlink" title="云平台和负载均衡——Ingress和NodePort"></a>云平台和负载均衡——Ingress和NodePort</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;在容器化部署的集群中（以K8S为例），部署在容器（pod&#x2F;service）中的服务只能通过内网IP地址访问，要想对外暴露服务有以下三种方式。</p>
+<ol>
+<li>NodePort</li>
+<li>LoadBalance</li>
+<li>Ingress</li>
+</ol>
+
+</div>
+<!--   <o3o key="mizore" api="https://o3o.mizore.site:2333"></o3o> -->
+<!--   
+<script src="/o3o/o3o.js"></script>
+ -->
+<!--   
+<link rel="stylesheet" href="/css/o3o.css">
+ -->
+</main>
+    <footer>
+  <div class="footer-info">© 2022-2024 Charlie | Powerd by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> | Theme <a
+      target="_blank" rel="noopener" href="https://github.com/mizoreyo/hexo-theme-insnow">Insnow</a>   <a target="_blank" rel="noopener" href="https://beian.miit.gov.cn/"> </a></div>
+  <div class="footer-info">
+    <a class="footer-i" target="_blank" rel="noopener" href="https://pictures-1314762005.cos.ap-hongkong.myqcloud.com/Obsidian/wechat.jpg"><i class="iconfont icon-wechat"></i></a>
+    <a class="footer-i" target="_blank" rel="noopener" href="https://github.com/RunCharlie"><i class="iconfont icon-github-fill"></i></a>
+<!--     <a class="footer-i" href=""><i class="iconfont icon-rss"></i></a> -->
+    <a class="footer-i" href="mailto:wumiaorun@qq.com"><i class="iconfont icon-mail"></i></a>
+  </div>
+</footer>
+  </div>
+</body>
+
+
+</html>
