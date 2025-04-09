@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="utf-8">
+  
+  <title>
+    
+    Solution - Google Sign-In 时未添加 SHA 证书指纹到 Firebase
+    
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/prism.min.js"></script>
+
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
+
+  
+<link rel="stylesheet" href="/css/prism/material-light.css">
+
+  
+<link rel="stylesheet" href="/css/prism/material-dark.css">
+
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+  
+<link rel="stylesheet" href="https://cdn.staticfile.org/prism/1.17.1/plugins/line-numbers/prism-line-numbers.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Noto+Sans+SC:wght@300&display=swap.css">
+
+  
+<link rel="stylesheet" href="/iconfont/iconfont.css">
+
+<meta name="generator" content="Hexo 7.0.0"></head>
+<script>
+  function setIsNight(isNight) {
+    localStorage.setItem('isNight', isNight)
+  }
+
+  function getIsNight() {
+    return localStorage.getItem('isNight')
+  }
+
+  function switchTheme() {
+    let isNight = getIsNight()
+    if (isNight === 'false') {
+      document.documentElement.className = 'dark'
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😴'
+      setIsNight('true')
+    } else {
+      document.documentElement.className = 'light'
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😳'
+      setIsNight('false')
+    }
+  }
+
+  let isNight = getIsNight()
+  if (isNight == null) {
+    isNight = 'false'
+    setIsNight('false')
+  }
+  if (isNight === 'false') {
+    document.documentElement.className = 'light'
+  } else {
+    document.documentElement.className = 'dark'
+  }
+</script>
+
+<body>
+  <div class="show-area">
+    <header>
+  <ul class="nav">
+    <li class="nav-child">
+      <a href="/">首页</a>
+    </li>
+    <li class="nav-child">
+      <a href="/categories">分类</a>
+    </li>
+    <li class="nav-child">
+      <a href="/tags">标签</a>
+    </li>
+    <li class="nav-child">
+      <a href="/about">关于</a>
+    </li>
+<!--     <li class="nav-child"> -->
+<!--       <a href="/collection">收藏</a> -->
+<!--     </li> -->
+<!--     <li class="nav-child"> -->
+<!--       <a href="/board">留言</a> -->
+<!--     </li> -->
+  </ul>
+  <div class="theme-switcher" onclick="switchTheme()">😳</div>
+  <script>
+    if (isNight === 'false') {
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😳'
+    } else {
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😴'
+    }
+  </script>
+</header>
+    <main class="main-body">
+  <div class="toc-container">
+    <div class="toc-toggle">
+      <i id="toc-b-icon" class="iconfont icon-liebiao-01" onclick="toggleShow()"></i>
+    </div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-Android-Studio-%E4%B8%BA-Flutter-%E5%BA%94%E7%94%A8%E6%B7%BB%E5%8A%A0-Google-Sign-In-%E6%97%B6%E6%9C%AA%E6%B7%BB%E5%8A%A0-SHA-%E8%AF%81%E4%B9%A6%E6%8C%87%E7%BA%B9%E5%88%B0-Firebase-%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95"><span class="toc-number">1.</span> <span class="toc-text">使用 Android Studio 为 Flutter 应用添加 Google Sign-In 时未添加 SHA 证书指纹到 Firebase 的解决方法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9B%A0-%E6%AD%A5%E9%AA%A4%E4%B8%80%EF%BC%9A%E7%94%9F%E6%88%90-SHA-1-%E6%8C%87%E7%BA%B9"><span class="toc-number">1.1.</span> <span class="toc-text">🛠 步骤一：生成 SHA-1 指纹</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%97-%E6%AD%A5%E9%AA%A4%E4%BA%8C%EF%BC%9A%E6%B7%BB%E5%8A%A0-SHA-1-%E5%88%B0-Firebase"><span class="toc-number">1.2.</span> <span class="toc-text">🔗 步骤二：添加 SHA-1 到 Firebase</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9D%97-%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9AJAVA-HOME-%E6%9C%AA%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.3.</span> <span class="toc-text">❗ 可能遇到的问题：JAVA_HOME 未设置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E8%AE%BE%E7%BD%AE-JAVA-HOME-%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-number">1.3.1.</span> <span class="toc-text">✅ 设置 JAVA_HOME 的方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%85-%E6%9C%80%E7%BB%88%E6%95%88%E6%9E%9C"><span class="toc-number">1.4.</span> <span class="toc-text">✅ 最终效果</span></a></li></ol></li></ol>
+  </div>
+  
+  <script>
+    var show = false
+    function toggleShow() {
+      if (show) {
+        document.getElementsByClassName('toc')[0].className = 'toc'
+        document.getElementById('toc-b-icon').className = 'iconfont icon-liebiao-01'
+      } else {
+        document.getElementsByClassName('toc')[0].className = 'toc show'
+        document.getElementById('toc-b-icon').className = 'iconfont icon-quxiao-01'
+      }
+      show = !show
+    }
+    document.getElementsByClassName('toc')[0].onclick = toggleShow
+  </script>
+  
+  <div class="article-header">
+    <h1 class="article-title">Solution - Google Sign-In 时未添加 SHA 证书指纹到 Firebase</h1>
+    <div class="article-details">
+      <div class="article-post-date"><span>Posted at </span> 2025-04-09</div>
+      <div class="article-tags">
+        
+        <a href="/tags/Google Sign-In">#Google Sign-In</a>
+        
+        <a href="/tags/Flutter">#Flutter</a>
+        
+        <a href="/tags/Android Studio">#Android Studio</a>
+        
+      </div>
+    </div>
+  </div>
+  <div class="article">
+  
+  <h1 id="使用-Android-Studio-为-Flutter-应用添加-Google-Sign-In-时未添加-SHA-证书指纹到-Firebase-的解决方法"><a href="#使用-Android-Studio-为-Flutter-应用添加-Google-Sign-In-时未添加-SHA-证书指纹到-Firebase-的解决方法" class="headerlink" title="使用 Android Studio 为 Flutter 应用添加 Google Sign-In 时未添加 SHA 证书指纹到 Firebase 的解决方法"></a>使用 Android Studio 为 Flutter 应用添加 Google Sign-In 时未添加 SHA 证书指纹到 Firebase 的解决方法</h1><p>在使用 Firebase + Google 登录功能时，如果未在 Firebase 控制台中添加 SHA-1 证书指纹，<strong>将导致 Google 登录失败，返回的用户为 null</strong>。本教程将教你如何正确生成并添加 SHA 指纹，以及如何解决 <code>JAVA_HOME</code> 未设置的问题。</p>
+<hr>
+<h2 id="🛠-步骤一：生成-SHA-1-指纹"><a href="#🛠-步骤一：生成-SHA-1-指纹" class="headerlink" title="🛠 步骤一：生成 SHA-1 指纹"></a>🛠 步骤一：生成 SHA-1 指纹</h2><ol>
+<li><p>打开你的 Flutter 项目中的 <code>android</code> 文件夹。</p>
+</li>
+<li><p>找到 <code>gradlew</code> 文件，右键选择：</p>
+<figure class="highlight plaintext"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Open In &gt; Terminal</span><br></pre></td></tr></table></div></figure>
+</li>
+<li><p>在打开的终端中输入以下命令：</p>
+<figure class="highlight bash"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew signingReport</span><br></pre></td></tr></table></div></figure>
+</li>
+<li><p>稍等几秒，控制台会输出类似以下内容：</p>
+<figure class="highlight plaintext"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Variant: debug</span><br><span class="line">SHA1: AB:CD:EF:...</span><br><span class="line">SHA-256: ...</span><br></pre></td></tr></table></div></figure>
+</li>
+<li><p>复制输出中的 <strong>SHA-1 指纹</strong>。</p>
+</li>
+</ol>
+<hr>
+<h2 id="🔗-步骤二：添加-SHA-1-到-Firebase"><a href="#🔗-步骤二：添加-SHA-1-到-Firebase" class="headerlink" title="🔗 步骤二：添加 SHA-1 到 Firebase"></a>🔗 步骤二：添加 SHA-1 到 Firebase</h2><ol>
+<li>打开 <a target="_blank" rel="noopener" href="https://console.firebase.google.com/">Firebase 控制台</a></li>
+<li>进入你的项目 → 点击左上角齿轮【项目设置】</li>
+<li>在 “你的应用” &gt; Android 中，找到 <strong>SHA 证书指纹</strong></li>
+<li>点击【添加指纹】，粘贴刚才复制的 SHA-1</li>
+<li>保存更改</li>
+<li>🔄 <strong>重新下载 <code>google-services.json</code> 文件</strong>，替换到项目中的：<figure class="highlight plaintext"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">android/app/google-services.json</span><br></pre></td></tr></table></div></figure></li>
+</ol>
+<hr>
+<h2 id="❗-可能遇到的问题：JAVA-HOME-未设置"><a href="#❗-可能遇到的问题：JAVA-HOME-未设置" class="headerlink" title="❗ 可能遇到的问题：JAVA_HOME 未设置"></a>❗ 可能遇到的问题：<code>JAVA_HOME</code> 未设置</h2><p>如果你在执行 <code>./gradlew signingReport</code> 时遇到如下错误：</p>
+<figure class="highlight bash"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR: JAVA_HOME is not <span class="built_in">set</span> and no <span class="string">&#x27;java&#x27;</span> <span class="built_in">command</span> could be found <span class="keyword">in</span> your PATH.</span><br></pre></td></tr></table></div></figure>
+
+<p>说明系统没有配置 Java 的环境变量。按以下步骤解决：</p>
+<hr>
+<h3 id="✅-设置-JAVA-HOME-的方法"><a href="#✅-设置-JAVA-HOME-的方法" class="headerlink" title="✅ 设置 JAVA_HOME 的方法"></a>✅ 设置 JAVA_HOME 的方法</h3><ol>
+<li><p>打开 Android Studio：</p>
+<figure class="highlight plaintext"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">File &gt; Project Structure &gt; SDKs</span><br></pre></td></tr></table></div></figure>
+</li>
+<li><p>在列表中找到类似 <code>jbr-21</code> &#x2F; <code>jbr-17</code> 的 Java SDK（选择数字最大的那个）</p>
+</li>
+<li><p>在右侧找到 <code>JDK home path</code>，<strong>复制该路径</strong></p>
+<ul>
+<li>示例路径：<code>C:\Program Files\Android\Android Studio\jbr</code></li>
+</ul>
+</li>
+<li><p>打开系统环境变量设置：</p>
+<ul>
+<li>Windows 搜索 <code>Environment Variables</code></li>
+<li>点击【环境变量】→ 在 “用户变量” 中点击【新建】</li>
+</ul>
+</li>
+<li><p>填写如下信息：</p>
+<ul>
+<li><strong>变量名</strong>：<code>JAVA_HOME</code></li>
+<li><strong>变量值</strong>：粘贴你复制的 <code>JDK home path</code></li>
+</ul>
+</li>
+<li><p>点击【确定】保存，然后在系统变量中的 <code>Path</code> 里添加一项：</p>
+<figure class="highlight plaintext"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%JAVA_HOME%\bin</span><br></pre></td></tr></table></div></figure>
+</li>
+<li><p>保存所有设置，重启命令行，再次运行：</p>
+<figure class="highlight bash"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew signingReport</span><br></pre></td></tr></table></div></figure></li>
+</ol>
+<hr>
+<h2 id="✅-最终效果"><a href="#✅-最终效果" class="headerlink" title="✅ 最终效果"></a>✅ 最终效果</h2><p>你应该能看到完整的 SHA 指纹，并成功将其添加到 Firebase。这样，<strong>Google Sign-In 登录就能正常返回用户信息了！</strong></p>
+
+</div>
+<!--   <o3o key="mizore" api="https://o3o.mizore.site:2333"></o3o> -->
+<!--   
+<script src="/o3o/o3o.js"></script>
+ -->
+<!--   
+<link rel="stylesheet" href="/css/o3o.css">
+ -->
+</main>
+    <footer>
+  <div class="footer-info">© 2022-2024 Charlie、老叶探花 | Powerd by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> | Theme <a
+      target="_blank" rel="noopener" href="https://github.com/mizoreyo/hexo-theme-insnow">Insnow</a>   <a target="_blank" rel="noopener" href="https://beian.miit.gov.cn/"> </a></div>
+  <div class="footer-info">
+    <a class="footer-i" target="_blank" rel="noopener" href="https://pictures-1314762005.cos.ap-hongkong.myqcloud.com/Obsidian/wechat.jpg"><i class="iconfont icon-wechat"></i></a>
+    <a class="footer-i" target="_blank" rel="noopener" href="https://github.com/RunCharlie"><i class="iconfont icon-github-fill"></i></a>
+<!--     <a class="footer-i" href=""><i class="iconfont icon-rss"></i></a> -->
+    <a class="footer-i" href="mailto:wumiaorun@qq.com"><i class="iconfont icon-mail"></i></a>
+  </div>
+</footer>
+  </div>
+</body>
+
+
+</html>
