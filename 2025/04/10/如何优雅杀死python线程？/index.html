@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="utf-8">
+  
+  <title>
+    
+    如何优雅杀死python线程？
+    
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/prism.min.js"></script>
+
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
+
+  
+<link rel="stylesheet" href="/css/prism/material-light.css">
+
+  
+<link rel="stylesheet" href="/css/prism/material-dark.css">
+
+  
+<script src="https://cdn.staticfile.org/prism/1.17.1/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+  
+<link rel="stylesheet" href="https://cdn.staticfile.org/prism/1.17.1/plugins/line-numbers/prism-line-numbers.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Noto+Sans+SC:wght@300&display=swap.css">
+
+  
+<link rel="stylesheet" href="/iconfont/iconfont.css">
+
+<meta name="generator" content="Hexo 7.0.0"></head>
+<script>
+  function setIsNight(isNight) {
+    localStorage.setItem('isNight', isNight)
+  }
+
+  function getIsNight() {
+    return localStorage.getItem('isNight')
+  }
+
+  function switchTheme() {
+    let isNight = getIsNight()
+    if (isNight === 'false') {
+      document.documentElement.className = 'dark'
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😴'
+      setIsNight('true')
+    } else {
+      document.documentElement.className = 'light'
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😳'
+      setIsNight('false')
+    }
+  }
+
+  let isNight = getIsNight()
+  if (isNight == null) {
+    isNight = 'false'
+    setIsNight('false')
+  }
+  if (isNight === 'false') {
+    document.documentElement.className = 'light'
+  } else {
+    document.documentElement.className = 'dark'
+  }
+</script>
+
+<body>
+  <div class="show-area">
+    <header>
+  <ul class="nav">
+    <li class="nav-child">
+      <a href="/">首页</a>
+    </li>
+    <li class="nav-child">
+      <a href="/categories">分类</a>
+    </li>
+    <li class="nav-child">
+      <a href="/tags">标签</a>
+    </li>
+    <li class="nav-child">
+      <a href="/about">关于</a>
+    </li>
+<!--     <li class="nav-child"> -->
+<!--       <a href="/collection">收藏</a> -->
+<!--     </li> -->
+<!--     <li class="nav-child"> -->
+<!--       <a href="/board">留言</a> -->
+<!--     </li> -->
+  </ul>
+  <div class="theme-switcher" onclick="switchTheme()">😳</div>
+  <script>
+    if (isNight === 'false') {
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😳'
+    } else {
+      document.getElementsByClassName('theme-switcher')[0].textContent = '😴'
+    }
+  </script>
+</header>
+    <main class="main-body">
+  <div class="toc-container">
+    <div class="toc-toggle">
+      <i id="toc-b-icon" class="iconfont icon-liebiao-01" onclick="toggleShow()"></i>
+    </div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Q1%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E8%BE%93%E5%85%A5%E4%B8%A4%E6%AC%A1Ctrl-C%E6%89%8D%E8%83%BD%E6%9D%80%E6%AD%BB%E7%BA%BF%E7%A8%8B%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">Q1：为什么要输入两次Ctrl+C才能杀死线程？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8B%E5%92%8C%E5%AD%90%E7%BA%BF%E7%A8%8B"><span class="toc-number">1.1.</span> <span class="toc-text">主线程和子线程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%80%E6%AD%BB%E7%BA%BF%E7%A8%8B%E5%8F%91%E7%94%9F%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-number">1.2.</span> <span class="toc-text">杀死线程发生了什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%88%E6%8A%A4%E7%BA%BF%E7%A8%8B"><span class="toc-number">1.3.</span> <span class="toc-text">守护线程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C"><span class="toc-number">1.4.</span> <span class="toc-text">结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Q2%EF%BC%9A%E8%A6%81%E6%80%8E%E4%B9%88%E6%AD%A3%E7%A1%AE%E6%9D%80%E6%AD%BB%E7%BA%BF%E7%A8%8B%EF%BC%8C%E4%B8%8D%E5%BD%B1%E5%93%8D%E4%B8%8B%E4%B8%80%E6%AC%A1%E6%89%A7%E8%A1%8C%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">Q2：要怎么正确杀死线程，不影响下一次执行？</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%99%84"><span class="toc-number">2.0.1.</span> <span class="toc-text">附</span></a></li></ol></li></ol></li></ol>
+  </div>
+  
+  <script>
+    var show = false
+    function toggleShow() {
+      if (show) {
+        document.getElementsByClassName('toc')[0].className = 'toc'
+        document.getElementById('toc-b-icon').className = 'iconfont icon-liebiao-01'
+      } else {
+        document.getElementsByClassName('toc')[0].className = 'toc show'
+        document.getElementById('toc-b-icon').className = 'iconfont icon-quxiao-01'
+      }
+      show = !show
+    }
+    document.getElementsByClassName('toc')[0].onclick = toggleShow
+  </script>
+  
+  <div class="article-header">
+    <h1 class="article-title">如何优雅杀死python线程？</h1>
+    <div class="article-details">
+      <div class="article-post-date"><span>Posted at </span> 2025-04-10</div>
+      <div class="article-tags">
+        
+        <a href="/tags/Python">#Python</a>
+        
+        <a href="/tags/多线程">#多线程</a>
+        
+      </div>
+    </div>
+  </div>
+  <div class="article">
+  
+  <p>工作中写了一个脚本工具，7个系统的某一动作会触发脚本的相关操作，而系统相互独立没有先后顺序，因此我起了7个线程分别监听系统的动作。在测试过程中，如果发现脚本没有按预期进行，我会输入Ctrl+C杀死线程。测试过程中，我注意到每次都需要输入2次Ctrl+C才能正常杀死线程。</p>
+<p>然而输入2次并不是什么难事，我也没有深究。昨天重试脚本时发现，在杀死线程重启程序后，程序明显变慢，等待数分钟都没有输出日志。推测是因为之前被杀死的线程没有被正确清理和关闭，当我强制终止程序时，一些线程可能处于“僵尸状态”，这些僵尸线程会占用系统资源，导致新启动的程序要等待资源释放以及线程被正确清理之后才能执行。</p>
+<p>话不多说，当前的线程代码如下：</p>
+<figure class="highlight python"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> system <span class="keyword">in</span> systems_list</span><br><span class="line">	threads = []</span><br><span class="line">	<span class="comment"># 创建线程，report是线程要执行的函数，file和params都是参数</span></span><br><span class="line">	thread = threading.Thread(target=report, args=(file,), kwargs=params)</span><br><span class="line">	threads.append(thread)</span><br><span class="line">	<span class="comment"># 启动线程</span></span><br><span class="line">	thread.start()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> thread <span class="keyword">in</span> threads:</span><br><span class="line">	<span class="comment"># 等待线程结束</span></span><br><span class="line">	thread.join()</span><br></pre></td></tr></table></div></figure>
+
+<h2 id="Q1：为什么要输入两次Ctrl-C才能杀死线程？"><a href="#Q1：为什么要输入两次Ctrl-C才能杀死线程？" class="headerlink" title="Q1：为什么要输入两次Ctrl+C才能杀死线程？"></a>Q1：为什么要输入两次Ctrl+C才能杀死线程？</h2><h3 id="主线程和子线程"><a href="#主线程和子线程" class="headerlink" title="主线程和子线程"></a>主线程和子线程</h3><p>在上面的代码中，主线程是执行<code>thread.start()</code>的那部分代码的线程，而<code>report</code>函数所在的线程是子线程。</p>
+<ul>
+<li><p><strong>主线程</strong>：默认情况下，当你运行一个Python程序时，程序的主线程就开始执行。在上面的例子中，主线程就是创建和启动子线程的那部分代码所在的线程。</p>
+</li>
+<li><p><strong>子线程</strong>：由主线程创建并启动的线程，用于并行执行任务。在上面的例子中，<code>report</code>函数所在的线程就是子线程。</p>
+</li>
+</ul>
+<h3 id="杀死线程发生了什么"><a href="#杀死线程发生了什么" class="headerlink" title="杀死线程发生了什么"></a>杀死线程发生了什么</h3><ul>
+<li>当按下第一次Ctrl+C时，系统会发送停止信号给主线程，但由于主线程下还有多个子线程，因此主线程还在等待子线程完成才会结束。</li>
+<li>而子线程此时不知道发生了什么，仍然正在运行。</li>
+<li>第二次按下Ctrl+C时，会强制终止子线程，所有线程被强制杀死。</li>
+</ul>
+<h3 id="守护线程"><a href="#守护线程" class="headerlink" title="守护线程"></a>守护线程</h3><p>守护线程是一种特殊的线程，它在后台运行，并且在主程序退出时会自动结束。因此将子线程都设置成守护线程时，主程序被杀死时子线程也会一并结束。</p>
+<figure class="highlight python"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tread.setDaemon(<span class="literal">True</span>)</span><br></pre></td></tr></table></div></figure>
+
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>将子线程都设置成守护线程，按下一次Ctrl+C即可退出程序，杀死所有线程。</p>
+<h2 id="Q2：要怎么正确杀死线程，不影响下一次执行？"><a href="#Q2：要怎么正确杀死线程，不影响下一次执行？" class="headerlink" title="Q2：要怎么正确杀死线程，不影响下一次执行？"></a>Q2：要怎么正确杀死线程，不影响下一次执行？</h2><p>在主线程中捕获 <code>KeyboardInterrupt</code>，并设置退出标志，通知子线程优雅地退出。</p>
+<figure class="highlight python"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"> </span><br><span class="line">running = <span class="literal">True</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">my_function</span>():</span><br><span class="line">    <span class="keyword">global</span> running</span><br><span class="line">    <span class="keyword">while</span> running:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Thread is running&quot;</span>)</span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Thread finished&quot;</span>)</span><br><span class="line"> </span><br><span class="line">thread = threading.Thread(target=my_function)</span><br><span class="line">thread.start()</span><br><span class="line">time.sleep(<span class="number">5</span>)  <span class="comment"># 等待一段时间后停止线程</span></span><br><span class="line">running = <span class="literal">False</span>  <span class="comment"># 设置标志位为False，通知线程退出</span></span><br><span class="line">thread.join()  <span class="comment"># 等待线程结束</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Main thread continues&quot;</span>)</span><br></pre></td></tr></table></div></figure>
+
+<p>使用退出标志时，务必注意线程的同步问题。如果多个线程同时访问和修改退出标志，可能会导致竞争条件。为避免这种情况，可以加锁<code>threading.Lock</code>或<code>threading.Event</code>来同步对标志的访问。下面展示使用Event的代码。</p>
+<figure class="highlight python"><div class="article-table"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"> </span><br><span class="line">event = threading.Event()</span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">my_function</span>():</span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">not</span> event.is_set():  <span class="comment"># 检测事件是否发生</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Thread is running&quot;</span>)</span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Thread finished&quot;</span>)</span><br><span class="line"> </span><br><span class="line">thread = threading.Thread(target=my_function)</span><br><span class="line">thread.start()</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        time.sleep(<span class="number">0.1</span>)  <span class="comment"># 主线程保持运行</span></span><br><span class="line"><span class="keyword">except</span> KeyboardInterrupt:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;KeyboardInterrupt received, stopping threads...&quot;</span>)</span><br><span class="line">    stop_event.<span class="built_in">set</span>()</span><br><span class="line">    thread.join()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Main thread exiting&quot;</span>)</span><br><span class="line"></span><br><span class="line">thread.join()  <span class="comment"># 等待线程结束</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Main thread continues&quot;</span>)</span><br></pre></td></tr></table></div></figure>
+
+<p>这样，使用 try&#x2F;except 块来确保资源被正确释放，实现优雅的关闭机制，让线程有机会清理资源的改造就完成了。</p>
+<h4 id="附"><a href="#附" class="headerlink" title="附"></a>附</h4><p>‌<br>Event是Python中用于线程同步的一个工具，主要用于协调多个线程的操作，避免死锁。</p>
+<p>Event对象由threading模块提供，主要有两种状态：已设置和未设置。当Event被设置时，所有等待该Event的线程都会被唤醒；当Event未被设置时，所有等待该Event的线程都会被阻塞，直到Event被设置。Event的主要方法包括：</p>
+<ul>
+<li>‌set()‌：将Event设置为已设置状态，并通知所有等待该Event的线程。</li>
+<li>‌clear()：将Event重置为未设置状态。</li>
+</ul>
+<p>使用场景：</p>
+<ol>
+<li><strong>减少锁的使用</strong>‌：可以减少对锁的依赖，避免死锁问题‌。</li>
+<li><strong>线程间通信</strong>‌：Event可以让多个线程通过信号来同步操作。</li>
+</ol>
+
+</div>
+<!--   <o3o key="mizore" api="https://o3o.mizore.site:2333"></o3o> -->
+<!--   
+<script src="/o3o/o3o.js"></script>
+ -->
+<!--   
+<link rel="stylesheet" href="/css/o3o.css">
+ -->
+</main>
+    <footer>
+  <div class="footer-info">© 2022-2025 Charlie、老叶探花 | Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> | Theme <a
+      target="_blank" rel="noopener" href="https://github.com/mizoreyo/hexo-theme-insnow">Insnow</a>   <a target="_blank" rel="noopener" href="https://beian.miit.gov.cn/"> </a></div>
+  <div class="footer-info">
+    <a class="footer-i" target="_blank" rel="noopener" href="https://pictures-1314762005.cos.ap-hongkong.myqcloud.com/Obsidian/wechat.jpg"><i class="iconfont icon-wechat"></i></a>
+    <a class="footer-i" target="_blank" rel="noopener" href="https://github.com/RunCharlie"><i class="iconfont icon-github-fill"></i></a>
+<!--     <a class="footer-i" href=""><i class="iconfont icon-rss"></i></a> -->
+    <a class="footer-i" href="mailto:wumiaorun@qq.com"><i class="iconfont icon-mail"></i></a>
+  </div>
+</footer>
+  </div>
+</body>
+
+
+</html>
